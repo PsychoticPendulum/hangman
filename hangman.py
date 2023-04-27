@@ -32,7 +32,7 @@ def Compare(word, current, guess):
         
 def WordList():
     for i in range (len(letters)):
-        print(f"{BG.GREEN}{letters[i]}",end=" " if (i+1) % 13 else "\n")
+        print(f"{BG.GREEN}{FG.BLACK}{letters[i]}",end=" " if (i+1) % 13 else "\n")
     print(UTIL.RESET)
 
 def Hangman(guess):
@@ -70,7 +70,7 @@ def Update(word,current,guesses_left):
 
 if __name__ == "__main__":
     try:
-        guesses = len(word)*2
+        guesses = min(16,len(word)*2)
         for i in range(guesses+1):
             Render(current,guesses-i)
             Update(word,current,guesses-i)
