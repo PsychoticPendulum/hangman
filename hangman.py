@@ -2,18 +2,119 @@
 
 from ANSI import *
 import random
+import sys
 
 def GetWord():
+    if len(sys.argv) > 1:
+        return sys.argv[1].lower()
     words = []
-    file = open("words.txt","r")
-    for line in file.readlines():
-        words.append(line.rstrip('\n'))
+    try:
+        file = open("words.txt","r")
+        for line in file.readlines():
+            words.append(line.rstrip('\n'))
+    except PermissionError:
+        print("ERROR: Insufficient permissions to read wordlist")
+        exit(1)
+    except FileNotFoundError:
+        print("ERROR: Unable to locate wordlist")
+        exit(1)
+    except:
+        print("ERROR: Unknown error")
+        exit(1)
+        
     return words[random.randint(0,len(words)-1)]
 
-word = GetWord() 
-current = ("_ ," * len(word)).split(',')
-letters = [ 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
-            'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z' ]
+class Stats:
+    word = GetWord() 
+    current = ("_ ," * len(word)).split(',')
+    fails = 0
+
+letters = [
+    'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
+    'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'
+]
+
+gallows = [
+    "        \n"
+    "        \n"
+    "        \n"
+    "        \n"
+    "        \n"    
+    "        \n"    
+    "--------\n",
+
+    "|       \n"
+    "|       \n"
+    "|       \n"
+    "|       \n"
+    "|       \n"    
+    "|       \n"    
+    "+-------\n",
+
+    "+----+  \n"
+    "|       \n"
+    "|       \n"
+    "|       \n"
+    "|       \n"    
+    "|       \n"    
+    "+-------\n",
+
+    "+----+  \n"
+    "|    |  \n"
+    "|       \n"
+    "|       \n"
+    "|       \n"    
+    "|       \n"    
+    "+-------\n",
+
+    "+----+  \n"
+    "|    |  \n"
+    "|    o  \n"
+    "|       \n"
+    "|       \n"    
+    "|       \n"    
+    "+-------\n",
+
+    "+----+  \n"
+    "|    |  \n"
+    "|    o  \n"
+    "|    T  \n"
+    "|       \n"    
+    "|       \n"    
+    "+-------\n",
+
+    "+----+  \n"
+    "|    |  \n"
+    "|    o  \n"
+    "|   /T  \n"
+    "|       \n"    
+    "|       \n"    
+    "+-------\n",
+
+    "+----+  \n"
+    "|    |  \n"
+    "|    o  \n"
+    "|   /T\ \n"
+    "|       \n"    
+    "|       \n"    
+    "+-------\n",
+
+    "+----+  \n"
+    "|    |  \n"
+    "|    o  \n"
+    "|   /T\ \n"
+    "|   /   \n"    
+    "|       \n"    
+    "+-------\n",
+
+    "+----+  \n"
+    "|    |  \n"
+    "|    o  \n"
+    "|   /T\ \n"
+    "|   / \ \n"    
+    "|       \n"    
+    "+-------\n",
+]
 
 def Compare(word, current, guess):
     if len(guess) > 1:
@@ -26,9 +127,14 @@ def Compare(word, current, guess):
         if letters[i] == guess:
             letters[i] = f"{BG.RED}{letters[i]}"
 
+    hit = False
     for i in range(len(word)):
         if word[i] == guess:
+           hit = True
            current[i] = f"{guess} "
+
+    if hit == False:
+        Stats.fails += 1
         
 def WordList():
     for i in range (len(letters)):
@@ -46,7 +152,7 @@ def Win():
 
 def Lose():
     print(f"{FG.RED}{UTIL.BOLD}Too bad, you lose :({UTIL.RESET}")
-    print(f"Your word would have been: {UTIL.UNDERLINE}{word}{UTIL.RESET}")
+    print(f"Your word would have been: {UTIL.UNDERLINE}{Stats.word}{UTIL.RESET}")
     exit()
 
 def CheckState(current,guesses_left):
@@ -62,17 +168,18 @@ def Render(current,guesses_left):
     print(UTIL.CLEAR + UTIL.TOP,end="")
     print(f"{UTIL.BOLD}Hangman by PsychicPenguin{UTIL.RESET}\n")
     WordList()
+    print(gallows[Stats.fails])
     Hangman(current)
 
 def Update(word,current,guesses_left):
     CheckState(current,guesses_left)
-    Compare(word,current,input(f"Guess a letter [{guesses_left}]: "))
+    Compare(word,current,input(f"Guess a letter [{guesses_left}]: ").lower())
 
 if __name__ == "__main__":
+    guesses = len(gallows)-1
     try:
-        guesses = min(16,len(word)*2)
-        for i in range(guesses+1):
-            Render(current,guesses-i)
-            Update(word,current,guesses-i)
+        while True:
+            Render(Stats.current,guesses-Stats.fails)
+            Update(Stats.word,Stats.current,guesses-Stats.fails)
     except KeyboardInterrupt:
         exit(0)
